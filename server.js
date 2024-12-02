@@ -2,6 +2,8 @@ const express = require('express');
 const dotenv = require('dotenv');
 
 dotenv.config();
+console.log('Loaded API Key:', process.env.GROK_API_KEY);
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
