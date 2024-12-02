@@ -5,8 +5,8 @@ const themeButton = document.querySelector("#theme-btn");
 const deleteButton = document.querySelector("#delete-btn");
 
 let userText = null;
-const API_URL = "https://api.x.ai/v1/chat/completions";
-const API_KEY = "xai-2OwaheOxVIUkItBU8Bj7jRYzbXE8mYIcmsBVCAr4Lk4t4aTkD9EuPzGOUBj1MMGDicoUswxZ8rh0lpNe";
+const API_URL = "xai-2OwaheOxVIUkItBU8Bj7jRYzbXE8mYIcmsBVCAr4Lk4t4aTkD9EuPzGOUBj1MMGDicoUswxZ8rh0lpNe";
+const API_KEY = "PASTE-YOUR-GROK-API-KEY-HERE";
 
 const loadDataFromLocalstorage = () => {
     const themeColor = localStorage.getItem("themeColor");
@@ -63,14 +63,21 @@ const getChatResponse = async (incomingChatDiv) => {
         pElement.textContent = "Có lỗi xảy ra khi nhận phản hồi. Vui lòng thử lại.";
     }
 
-    incomingChatDiv.querySelector(".typing-animation").remove();
+    // Remove the typing animation and replace with the chat content
+    const chatContent = document.createElement("div");
+    chatContent.className = "chat-content";
+    
     const chatDetails = document.createElement("div");
     chatDetails.className = "chat-details";
     chatDetails.innerHTML = `
-        <img src="grok-img.png" alt="grok-img">
-        ${pElement.outerHTML}
+        <img src="grok-img.png" alt="grok-img" class="chat-avatar">
+        <div class="message-content">${pElement.outerHTML}</div>
     `;
-    incomingChatDiv.appendChild(chatDetails);
+    
+    chatContent.appendChild(chatDetails);
+    incomingChatDiv.innerHTML = ''; // Clear the loading animation
+    incomingChatDiv.appendChild(chatContent);
+    
     localStorage.setItem("all-chats", chatContainer.innerHTML);
     chatContainer.scrollTo(0, chatContainer.scrollHeight);
 };
@@ -83,8 +90,10 @@ const handleOutgoingChat = () => {
 
     const html = `<div class="chat-content">
                     <div class="chat-details">
-                        <img src="user-img.png" alt="user-img">
-                        <p>${userText}</p>
+                        <img src="user-img.png" alt="user-img" class="chat-avatar">
+                        <div class="message-content">
+                            <p>${userText}</p>
+                        </div>
                     </div>
                 </div>`;
 
@@ -94,19 +103,29 @@ const handleOutgoingChat = () => {
     chatContainer.scrollTo(0, chatContainer.scrollHeight);
     
     setTimeout(() => {
-        const incomingChat = `<div class="chat-content">
+        const loadingHtml = `<div class="chat-content">
+                            <div class="chat-details">
+                                <img src="grok-img.png" alt="grok-img" class="chat-avatar">
                                 <div class="typing-animation">
                                     <div class="typing-dot" style="--delay: 0.2s"></div>
                                     <div class="typing-dot" style="--delay: 0.3s"></div>
                                     <div class="typing-dot" style="--delay: 0.4s"></div>
                                 </div>
-                            </div>`;
-        const incomingChatDiv = createChatElement(incomingChat, "incoming");
+                            </div>
+                        </div>`;
+        const incomingChatDiv = createChatElement(loadingHtml, "incoming");
         chatContainer.appendChild(incomingChatDiv);
         chatContainer.scrollTo(0, chatContainer.scrollHeight);
         getChatResponse(incomingChatDiv);
     }, 500);
 };
+
+chatInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey && window.innerWidth > 800) {
+        e.preventDefault();
+        handleOutgoingChat();
+    }
+});
 
 sendButton.addEventListener("click", handleOutgoingChat);
 
@@ -119,13 +138,6 @@ deleteButton.addEventListener("click", () => {
     if (confirm("Bạn có chắc chắn muốn xóa tất cả các cuộc trò chuyện?")) {
         localStorage.removeItem("all-chats");
         loadDataFromLocalstorage();
-    }
-});
-
-chatInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !e.shiftKey && window.innerWidth > 800) {
-        e.preventDefault();
-        handleOutgoingChat();
     }
 });
 
