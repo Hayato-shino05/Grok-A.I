@@ -6,14 +6,16 @@ const deleteButton = document.querySelector("#delete-btn");
 
 let userText = null;
 
+// API Configuration
+const API_KEY = "xai-2OwaheOxVIUkItBU8Bj7jRYzbXE8mYIcmsBVCAr4Lk4t4aTkD9EuPzGOUBj1MMGDicoUswxZ8rh0lpNe"; // API Key của bạn
+const API_URL = "https://api.x.ai/v1/chat/completions";
+
 // Load dữ liệu từ localStorage
 const loadDataFromLocalstorage = () => {
-    // Load theme setting
     const themeColor = localStorage.getItem("themeColor");
     document.body.classList.toggle("light-mode", themeColor === "light_mode");
     themeButton.innerText = document.body.classList.contains("light-mode") ? "dark_mode" : "light_mode";
 
-    // Load chat history hoặc hiển thị text mặc định
     const defaultText = `
         <div class="default-text">
             <h1>Grok AI by Hayato_shino05</h1>
@@ -26,7 +28,7 @@ const loadDataFromLocalstorage = () => {
     chatContainer.scrollTo(0, chatContainer.scrollHeight);
 };
 
-// Tạo một phần tử chat
+// Tạo phần tử chat
 const createChatElement = (content, className) => {
     const chatDiv = document.createElement("div");
     chatDiv.classList.add("chat", className);
@@ -34,59 +36,61 @@ const createChatElement = (content, className) => {
     return chatDiv;
 };
 
-// Gửi yêu cầu tới API và nhận phản hồi
+// Gửi yêu cầu đến API Grok và nhận phản hồi
 const getChatResponse = async (incomingChatDiv) => {
     const pElement = document.createElement("p");
     const typingAnimation = incomingChatDiv.querySelector(".typing-animation");
 
     try {
-        const response = await fetch("/api/grok", {
+        const requestOptions = {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userText }),
-        });
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${API_KEY}`,
+            },
+            body: JSON.stringify({
+                model: "grok-vision-beta",
+                messages: [
+                    { role: "system", content: "You are a test assistant." },
+                    { role: "user", content: userText },
+                ],
+                temperature: 0,
+                stream: false,
+            }),
+        };
 
-        // Kiểm tra trạng thái phản hồi
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error("API Error:", response.status, errorText);
-            throw new Error(`API Error: ${response.status}`);
-        }
-
+        const response = await fetch(API_URL, requestOptions);
         const data = await response.json();
 
-        // Kiểm tra cấu trúc phản hồi
+        if (!response.ok) throw new Error(data.error?.message || "API Error");
+
         if (data?.choices?.[0]?.message?.content) {
             pElement.textContent = data.choices[0].message.content;
         } else {
             throw new Error("Invalid response format");
         }
     } catch (error) {
-        console.error("Error fetching chat response:", error);
+        console.error("Error:", error);
         pElement.classList.add("error");
         pElement.textContent = "Oops! Something went wrong while retrieving the response. Please try again.";
     } finally {
-        // Xóa typing animation và thêm nội dung phản hồi
         if (typingAnimation) typingAnimation.remove();
         const chatDetails = incomingChatDiv.querySelector(".chat-details") || incomingChatDiv;
         chatDetails.appendChild(pElement);
 
-        // Lưu lịch sử vào localStorage
         localStorage.setItem("all-chats", chatContainer.innerHTML);
         chatContainer.scrollTo(0, chatContainer.scrollHeight);
     }
 };
 
-// Xử lý chat của người dùng
+// Xử lý gửi chat
 const handleOutgoingChat = () => {
     userText = chatInput.value.trim();
     if (!userText) return;
 
-    // Xóa nội dung input
     chatInput.value = "";
     chatInput.style.height = "auto";
 
-    // Tạo chat outgoing
     const outgoingHtml = `
         <div class="chat-content">
             <div class="chat-details">
@@ -98,7 +102,6 @@ const handleOutgoingChat = () => {
     chatContainer.appendChild(outgoingChatDiv);
     chatContainer.scrollTo(0, chatContainer.scrollHeight);
 
-    // Tạo chat incoming sau 500ms
     setTimeout(() => {
         const incomingHtml = `
             <div class="chat-content">
@@ -114,7 +117,7 @@ const handleOutgoingChat = () => {
     }, 500);
 };
 
-// Xử lý phím Enter
+// Xử lý sự kiện phím Enter
 chatInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
@@ -122,7 +125,7 @@ chatInput.addEventListener("keydown", (e) => {
     }
 });
 
-// Xử lý sự kiện button
+// Các sự kiện button
 sendButton.addEventListener("click", handleOutgoingChat);
 
 themeButton.addEventListener("click", () => {
@@ -139,7 +142,7 @@ deleteButton.addEventListener("click", () => {
     }
 });
 
-// Tự động thay đổi chiều cao của input
+// Tự động thay đổi chiều cao input
 chatInput.addEventListener("input", () => {
     chatInput.style.height = "auto";
     chatInput.style.height = `${chatInput.scrollHeight}px`;
