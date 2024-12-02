@@ -1,10 +1,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
 
-dotenv.config();
-console.log('Loaded API Key:', process.env.GROK_API_KEY);
-
-
+// Không cần dotenv.config() nếu đã cấu hình biến môi trường trên Render
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -15,7 +12,7 @@ app.post('/api/grok', async (req, res) => {
     try {
         const { userText } = req.body;
         console.log('Received request:', userText);
-        
+
         const API_KEY = process.env.GROK_API_KEY;
         
         if (!API_KEY) {
@@ -28,11 +25,11 @@ app.post('/api/grok', async (req, res) => {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${API_KEY}`,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                messages: [{ role: "user", content: userText }]
-            })
+                messages: [{ role: "user", content: userText }],
+            }),
         });
 
         if (!response.ok) {
@@ -49,19 +46,15 @@ app.post('/api/grok', async (req, res) => {
             throw new Error('Invalid response format from API');
         }
 
-        res.json({ choices: [{ message: { content: data.choices[0].message.content }}] });
+        res.json({ choices: [{ message: { content: data.choices[0].message.content } }] });
     } catch (error) {
         console.error('Detailed error:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Internal server error',
             message: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
         });
     }
-});
-
-app.get('*', (req, res) => {
-    res.sendFile('index.html', { root: './' });
 });
 
 app.listen(PORT, () => {
