@@ -1,4 +1,4 @@
-window.onload = () => {
+window.onbeforeunload = () => {
     localStorage.removeItem("all-chats");
     localStorage.removeItem("themeColor");
 };
