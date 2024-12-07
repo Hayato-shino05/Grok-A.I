@@ -10,7 +10,7 @@ const themeButton = document.querySelector("#theme-btn");
 const deleteButton = document.querySelector("#delete-btn");
 
 let userText = null;
-const API_URL = "https://api.x.ai/v1/chat/completions"; // Grok API URL
+const API_URL = "/proxy.php"; // Proxy PHP URL
 
 const loadDataFromLocalstorage = () => {
     const themeColor = localStorage.getItem("themeColor");
@@ -35,33 +35,13 @@ const createChatElement = (content, className) => {
     return chatDiv;
 };
 
-const getApiKey = async () => {
-    try {
-        const response = await fetch("proxy.php");
-        const data = await response.json();
-        console.log("API Key:", data.api_key); // Log API key để kiểm tra
-        return data.api_key;
-    } catch (error) {
-        console.error("Error fetching API key:", error);
-        return null;
-    }
-};
-
 const getChatResponse = async (incomingChatDiv) => {
     const pElement = document.createElement("p");
-
-    const apiKey = await getApiKey();
-    if (!apiKey) {
-        pElement.classList.add("error");
-        pElement.textContent = "Failed to load API key.";
-        return;
-    }
 
     const requestOptions = {
         method: "POST",
         headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${apiKey}`
+            "Content-Type": "application/json"
         },
         body: JSON.stringify({
             model: "grok-vision-beta",
