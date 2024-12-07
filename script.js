@@ -39,6 +39,7 @@ const getApiKey = async () => {
     try {
         const response = await fetch("proxy.php");
         const data = await response.json();
+        console.log("API Key:", data.api_key); // Log API key để kiểm tra
         return data.api_key;
     } catch (error) {
         console.error("Error fetching API key:", error);
@@ -74,11 +75,14 @@ const getChatResponse = async (incomingChatDiv) => {
     };
 
     try {
-        const response = await (await fetch(API_URL, requestOptions)).json();
-        pElement.textContent = response.choices[0].message.content.trim();
+        const response = await fetch(API_URL, requestOptions);
+        const jsonResponse = await response.json();
+        console.log("API Response:", jsonResponse); // Log phản hồi từ API
+        pElement.textContent = jsonResponse.choices[0].message.content.trim();
     } catch (error) {
         pElement.classList.add("error");
         pElement.textContent = "Oops! Something went wrong while retrieving the response. Please try again.";
+        console.error("Error fetching API response:", error); // Log lỗi
     }
 
     incomingChatDiv.querySelector(".typing-animation").remove();
