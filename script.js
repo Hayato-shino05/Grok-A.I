@@ -10,11 +10,14 @@ const themeButton = document.querySelector("#theme-btn");
 const deleteButton = document.querySelector("#delete-btn");
 
 let userText = null;
+// Add conversation history array
 let conversationHistory = [];
-const API_PROXY = "/proxy.php"; // Using proxy instead of direct API access
+const API_KEY = "xai-2OwaheOxVIUkItBU8Bj7jRYzbXE8mYIcmsBVCAr4Lk4t4aTkD9EuPzGOUBj1MMGDicoUswxZ8rh0lpNe";
+const API_URL = "https://api.x.ai/v1/chat/completions";
 
 const loadDataFromLocalstorage = () => {
     const themeColor = localStorage.getItem("themeColor");
+    // Load conversation history from localStorage
     const savedHistory = localStorage.getItem("conversationHistory");
     if (savedHistory) {
         conversationHistory = JSON.parse(savedHistory);
@@ -46,10 +49,11 @@ const getChatResponse = async (incomingChatDiv) => {
 
     let fullResponse = '';
 
+    // Add a system message that emphasizes maintaining context
     const messages = [
         { 
             role: "system", 
-            content: "You are a helpful assistant. You should maintain context throughout the conversation and remember important details that users share." 
+            content: "You are a helpful assistant. You should maintain context throughout the conversation and remember important details that users share, like their names. Always refer to previously mentioned information when relevant." 
         },
         ...conversationHistory,
         { role: "user", content: userText }
@@ -59,21 +63,22 @@ const getChatResponse = async (incomingChatDiv) => {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${API_KEY}`
         },
         body: JSON.stringify({
             model: "grok-vision-beta",
             messages: messages,
-            temperature: 0.7,
+            temperature: 0.7, // Slightly increased for more natural responses
             stream: true,
         })
     };
 
     try {
-        const response = await fetch(API_PROXY, requestOptions);
+        const response = await fetch(API_URL, requestOptions);
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
 
-        incomingChatDiv.querySelector(".typing-animation")?.remove();
+        incomingChatDiv.querySelector(".typing-animation").remove();
 
         while (true) {
             const { done, value } = await reader.read();
@@ -102,11 +107,13 @@ const getChatResponse = async (incomingChatDiv) => {
             }
         }
 
+        // Update conversation history
         conversationHistory.push(
             { role: "user", content: userText },
             { role: "assistant", content: fullResponse }
         );
 
+        // Limit history to last 20 messages to prevent token limit issues
         if (conversationHistory.length > 20) {
             conversationHistory = conversationHistory.slice(-20);
         }
@@ -118,11 +125,16 @@ const getChatResponse = async (incomingChatDiv) => {
         pElement.classList.add("error");
         pElement.textContent = "Oops! Something went wrong while retrieving the response. Please try again.";
     }
+
+    incomingChatDiv.querySelector(".typing-animation").remove();
+    incomingChatDiv.querySelector(".chat-details").appendChild(pElement);
+    localStorage.setItem("all-chats", chatContainer.innerHTML);
+    chatContainer.scrollTo(0, chatContainer.scrollHeight);
 }
 
 const copyResponse = (copyBtn) => {
-    const responseTextElement = copyBtn.parentElement.querySelector("p");
-    navigator.clipboard.writeText(responseTextElement.textContent);
+    const reponseTextElement = copyBtn.parentElement.querySelector("p");
+    navigator.clipboard.writeText(reponseTextElement.textContent);
     copyBtn.textContent = "done";
     setTimeout(() => copyBtn.textContent = "content_copy", 1000);
 }
@@ -169,6 +181,7 @@ const handleOutgoingChat = () => {
 deleteButton.addEventListener("click", () => {
     if(confirm("Are you sure you want to delete all the chats?")) {
         localStorage.removeItem("all-chats");
+        // Also clear conversation history
         localStorage.removeItem("conversationHistory");
         conversationHistory = [];
         loadDataFromLocalstorage();
