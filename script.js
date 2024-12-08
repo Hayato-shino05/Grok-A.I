@@ -66,7 +66,7 @@ const getChatResponse = async (incomingChatDiv) => {
             "Authorization": `Bearer ${API_KEY}`
         },
         body: JSON.stringify({
-            model: "grok-vision-beta",
+            model: "grok-beta",
             messages: messages,
             temperature: 0.7, // Slightly increased for more natural responses
             stream: true,
