@@ -68,7 +68,7 @@ const getChatResponse = async (incomingChatDiv) => {
         body: JSON.stringify({
             model: "grok-beta",
             messages: messages,
-            temperature: 0.7, // Slightly increased for more natural responses
+            temperature: 0.2, // Slightly increased for more natural responses
             stream: true,
         })
     };
