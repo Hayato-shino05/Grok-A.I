@@ -53,7 +53,7 @@ const getChatResponse = async (incomingChatDiv) => {
     const messages = [
         { 
             role: "system", 
-            content: "You are a helpful assistant. You should maintain context throughout the conversation and remember important details that users share, like their names. Always refer to previously mentioned information when relevant." 
+            content: "You are Grok, a chatbot inspired by the Hitchhikers Guide to the Galaxy."
         },
         ...conversationHistory,
         { role: "user", content: userText }
