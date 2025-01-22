@@ -12,8 +12,8 @@ const deleteButton = document.querySelector("#delete-btn");
 let userText = null;
 // Add conversation history array
 let conversationHistory = [];
-const API_KEY = "AIzaSyCs8bwySgIMbG2wLabLx1BhFJY4shR2gSA";
-const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash";
+const API_KEY = "xai-R3ANsaI1CjFZOUHBhHqY7EKouBivbFsiV3j3Z7oBo60msrLN6cj3huEMWdc95Ymtl53g9OoogSYtVRut";
+const API_URL = "https://api.x.ai/v1/chat/completions";
 
 const loadDataFromLocalstorage = () => {
     const themeColor = localStorage.getItem("themeColor");
